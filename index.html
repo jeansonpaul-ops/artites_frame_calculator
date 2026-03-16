@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculateur Châssis Alu — LuxVisual</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Nunito Sans',sans-serif;background:#f0f4f8;min-height:100vh;padding:0 0 3rem;}
+    .lv-header{background:#fff;border-bottom:3px solid #2b7db8;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px;}
+    .lv-logo{height:44px;object-fit:contain;}
+    .lv-app-title{font-size:11px;font-weight:800;color:#2b7db8;letter-spacing:.1em;text-transform:uppercase;border-left:2px solid #2b7db8;padding-left:14px;text-align:right;line-height:1.5;}
+
+    /* NAV TABS */
+    .tabs{display:flex;gap:0;margin:0 16px 20px;border-radius:8px;overflow:hidden;border:1.5px solid #dce4ed;background:#fff;}
+    .tab{flex:1;font-family:'Nunito Sans',sans-serif;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:12px 8px;border:none;background:#fff;color:#7a9bb5;cursor:pointer;transition:all .15s;border-right:1.5px solid #dce4ed;}
+    .tab:last-child{border-right:none;}
+    .tab.active{background:#2b7db8;color:#fff;}
+    .tab:hover:not(.active){background:#f0f7ff;}
+
+    .body{max-width:640px;margin:0 auto;padding:0 16px;}
+    .page{display:none;}
+    .page.active{display:block;}
+
+    .card{background:#fff;border:1px solid #dce4ed;border-radius:8px;padding:20px 22px;margin-bottom:16px;}
+    .card-title{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#2b7db8;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+    .card-title::after{content:'';flex:1;height:1px;background:#e8edf3;}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 100px;gap:12px;}
+    .field label{font-size:11px;font-weight:700;color:#5a7a97;letter-spacing:.05em;display:block;margin-bottom:5px;text-transform:uppercase;}
+    .field input{width:100%;font-family:'Nunito Sans',sans-serif;font-size:15px;font-weight:600;padding:10px 12px;border:1.5px solid #dce4ed;border-radius:6px;background:#f8fafc;color:#1a2e42;outline:none;transition:border-color .15s;}
+    .field input:focus{border-color:#2b7db8;background:#fff;}
+    .field .unit{font-size:10px;color:#9ab5cc;margin-top:4px;font-weight:700;}
+    .field-ex input{border-color:#f0a500;}
+    .field-ex input:focus{border-color:#c07800;}
+    .field-ex label{color:#c07800;}
+    .field-ex .unit{color:#f0a500;}
+    .field-full{margin-top:12px;}
+    .field-full label{font-size:11px;font-weight:700;color:#5a7a97;letter-spacing:.05em;display:block;margin-bottom:5px;text-transform:uppercase;}
+    .field-full input{width:100%;font-family:'Nunito Sans',sans-serif;font-size:13px;font-weight:600;padding:9px 12px;border:1.5px solid #dce4ed;border-radius:6px;background:#f8fafc;color:#1a2e42;outline:none;transition:border-color .15s;}
+    .field-full input:focus{border-color:#2b7db8;background:#fff;}
+    .btn-add{font-family:'Nunito Sans',sans-serif;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:11px 22px;background:#2b7db8;color:#fff;border:none;border-radius:6px;cursor:pointer;transition:background .15s;margin-top:14px;width:100%;}
+    .btn-add:hover{background:#1d6fa8;}
+    .btn-add:disabled{background:#b0c8dc;cursor:not-allowed;}
+    .res-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+    .res-piece{border:1.5px solid #dce4ed;border-radius:7px;padding:14px 16px;position:relative;overflow:hidden;background:#f8fafc;}
+    .res-piece::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#2b7db8;}
+    .res-piece.amber-piece::before{background:#f0a500;}
+    .piece-label{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a9bb5;margin-bottom:6px;}
+    .piece-dim{font-size:30px;font-weight:800;color:#1a2e42;line-height:1;}
+    .piece-dim span{font-size:13px;font-weight:600;color:#9ab5cc;margin-left:2px;}
+    .piece-qty{font-size:11px;font-weight:700;color:#2b7db8;margin-top:5px;}
+    .piece-off{font-size:10px;font-weight:700;margin-top:3px;}
+    .piece-off.blue{color:#2b7db8;}
+    .piece-off.amber{color:#c07800;}
+    .formula-box{border-radius:7px;padding:12px 16px;font-size:12px;line-height:2;}
+    .formula-box.blue-box{background:#eaf4fb;border:1px solid #b8d8f0;color:#3a6080;}
+    .formula-box.amber-box{background:#fff8e0;border:1px solid #f5d580;color:#7a5000;}
+    .formula-box.mixed-box{background:#fff8e8;border:1px solid #e8d090;color:#5a4000;}
+    .f-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px;}
+    .f-lbl{font-weight:800;color:#7a9bb5;font-size:11px;text-transform:uppercase;letter-spacing:.04em;min-width:62px;}
+    .f-val{font-weight:800;font-size:13px;color:#1a2e42;}
+    .f-op{color:#b0c8dc;font-size:13px;}
+    .f-res{font-weight:800;font-size:14px;color:#2b7db8;}
+    .f-res.amber{color:#c07800;}
+    .f-tag{font-size:9px;font-weight:800;padding:1px 5px;border-radius:3px;margin-left:3px;}
+    .f-tag.t256{background:#eaf4fb;color:#2b7db8;}
+    .f-tag.t156{background:#fff5e0;color:#c07800;}
+    .warn{border-radius:6px;padding:10px 14px;font-size:12px;margin-top:10px;font-weight:700;display:none;}
+    .warn.error{background:#fdecea;border:1px solid #f5b7b1;color:#c0392b;}
+    .vis-lbl{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a9bb5;margin-bottom:8px;margin-top:18px;}
+    canvas{display:block;border-radius:4px;max-width:100%;}
+    .legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;padding:9px 14px;background:#f8fafc;border-radius:7px;border:1px solid #e8edf3;}
+    .leg-item{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#5a7a97;}
+    .leg-dot{width:10px;height:10px;border-radius:50%;}
+    .leg-dot.blue{background:#2b7db8;}
+    .leg-dot.amber{background:#f0a500;}
+    .history-empty{text-align:center;padding:24px;color:#b0c0d0;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;}
+    .hist-item{border:1px solid #e8edf3;border-radius:7px;padding:11px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;background:#fafcff;}
+    .hist-badge{background:#2b7db8;color:#fff;border-radius:5px;padding:4px 8px;font-size:10px;font-weight:800;white-space:nowrap;}
+    .hist-info{flex:1;min-width:0;}
+    .hist-name{font-size:12px;font-weight:800;color:#1a2e42;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .hist-dims{font-size:11px;color:#7a9bb5;font-weight:600;}
+    .hist-ex{background:#fff5e0;color:#c07800;border-radius:4px;padding:3px 7px;font-size:10px;font-weight:800;white-space:nowrap;}
+    .hist-result{font-size:11px;color:#2b7db8;font-weight:700;text-align:right;white-space:nowrap;line-height:1.7;}
+    .hist-del{background:none;border:none;cursor:pointer;color:#c0ccd8;font-size:18px;padding:2px 4px;line-height:1;flex-shrink:0;}
+    .hist-del:hover{color:#e74c3c;}
+    .export-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+    .btn-exp{font-family:'Nunito Sans',sans-serif;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:9px 14px;border-radius:6px;cursor:pointer;transition:all .15s;}
+    .btn-csv{background:#fff;border:1.5px solid #2b7db8;color:#2b7db8;}
+    .btn-csv:hover{background:#eaf4fb;}
+    .btn-grp{background:#fff;border:1.5px solid #5a9e3c;color:#5a9e3c;}
+    .btn-grp:hover{background:#f0f8e8;}
+    .btn-grp.active{background:#5a9e3c;color:#fff;}
+    .btn-clear{background:#fff;border:1.5px solid #d88;color:#c55;}
+    .btn-clear:hover{background:#fff0f0;}
+    .grp-panel{display:none;}
+    .grp-panel.open{display:block;}
+    .grp-intro{font-size:11px;color:#5a8050;font-weight:700;margin-bottom:12px;padding:8px 12px;background:#f0f8e8;border-radius:6px;border:1px solid #c8e8b0;}
+    .grp-block{margin-bottom:12px;border-radius:7px;overflow:hidden;border:1.5px solid #b8d8f0;}
+    .grp-head{background:#2b7db8;color:#fff;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;}
+    .grp-head-label{font-size:12px;font-weight:800;}
+    .grp-head-total{font-size:11px;font-weight:700;background:rgba(255,255,255,.2);padding:3px 9px;border-radius:4px;}
+    .grp-rows{background:#fff;}
+    .grp-row-h{display:grid;grid-template-columns:80px 1fr 90px;padding:7px 14px;background:#f0f8ff;border-bottom:1px solid #e0ecf8;}
+    .grp-row-h span{font-size:10px;font-weight:800;color:#7a9bb5;text-transform:uppercase;letter-spacing:.05em;}
+    .grp-row{display:grid;grid-template-columns:80px 1fr 90px;padding:8px 14px;border-bottom:1px solid #f0f4f8;font-size:12px;}
+    .grp-row:last-child{border-bottom:none;}
+    .grp-row:nth-child(even){background:#fafcff;}
+    .grp-date{color:#9ab5cc;font-weight:600;}
+    .grp-ref{color:#1a2e42;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .grp-bars{color:#c07800;font-weight:800;text-align:right;}
+    .grp-foot{background:#eaf4fb;border-top:2px solid #2b7db8;padding:9px 14px;display:flex;justify-content:space-between;align-items:center;}
+    .grp-foot-lbl{font-size:11px;color:#3a6080;font-weight:700;}
+    .grp-foot-val{font-size:13px;color:#2b7db8;font-weight:800;}
+
+    /* ══════════════════════════════════
+       PAGE IMPOSITION
+    ══════════════════════════════════ */
+    .imp-source-tabs{display:flex;gap:0;border-radius:6px;overflow:hidden;border:1.5px solid #dce4ed;margin-bottom:16px;}
+    .imp-stab{flex:1;font-family:'Nunito Sans',sans-serif;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:9px;border:none;background:#f8fafc;color:#7a9bb5;cursor:pointer;border-right:1.5px solid #dce4ed;}
+    .imp-stab:last-child{border-right:none;}
+    .imp-stab.active{background:#2b7db8;color:#fff;}
+
+    /* liste barres manuelles */
+    .imp-bar-list{margin-bottom:12px;}
+    .imp-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+    .imp-bar-row input{font-family:'Nunito Sans',sans-serif;font-size:13px;font-weight:600;padding:8px 10px;border:1.5px solid #dce4ed;border-radius:6px;background:#f8fafc;color:#1a2e42;outline:none;width:110px;}
+    .imp-bar-row input:focus{border-color:#2b7db8;background:#fff;}
+    .imp-bar-row .imp-bar-unit{font-size:11px;color:#9ab5cc;font-weight:700;}
+    .imp-bar-row .imp-bar-qty{font-family:'Nunito Sans',sans-serif;font-size:13px;font-weight:700;padding:8px 8px;border:1.5px solid #f0a500;border-radius:6px;background:#fffbf0;color:#1a2e42;outline:none;width:60px;}
+    .imp-bar-row .imp-bar-lbl{font-size:10px;color:#c07800;font-weight:800;text-transform:uppercase;}
+    .imp-bar-del{background:none;border:none;cursor:pointer;color:#c0ccd8;font-size:16px;padding:2px 5px;border-radius:4px;line-height:1;}
+    .imp-bar-del:hover{color:#e74c3c;}
+    .btn-add-bar{font-family:'Nunito Sans',sans-serif;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:8px 14px;background:#fff;border:1.5px dashed #2b7db8;color:#2b7db8;border-radius:6px;cursor:pointer;width:100%;margin-bottom:12px;}
+    .btn-add-bar:hover{background:#eaf4fb;}
+
+    /* import depuis historique */
+    .imp-hist-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid #e8edf3;border-radius:7px;margin-bottom:7px;background:#fafcff;}
+    .imp-hist-item input[type=checkbox]{width:16px;height:16px;accent-color:#2b7db8;cursor:pointer;flex-shrink:0;}
+    .imp-hist-info{flex:1;min-width:0;}
+    .imp-hist-name{font-size:12px;font-weight:800;color:#1a2e42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .imp-hist-sub{font-size:10px;color:#7a9bb5;font-weight:600;}
+    .imp-hist-dims{font-size:11px;color:#2b7db8;font-weight:700;white-space:nowrap;}
+
+    .btn-compute{font-family:'Nunito Sans',sans-serif;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:12px 22px;background:#2b7db8;color:#fff;border:none;border-radius:6px;cursor:pointer;transition:background .15s;width:100%;}
+    .btn-compute:hover{background:#1d6fa8;}
+    .btn-compute:disabled{background:#b0c8dc;cursor:not-allowed;}
+
+    /* résultat imposition */
+    .imp-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+    .imp-stat{background:#f8fafc;border:1px solid #dce4ed;border-radius:7px;padding:12px 14px;text-align:center;}
+    .imp-stat-val{font-size:22px;font-weight:800;color:#2b7db8;line-height:1;}
+    .imp-stat-lbl{font-size:10px;font-weight:700;color:#9ab5cc;text-transform:uppercase;letter-spacing:.05em;margin-top:4px;}
+
+    /* barre 3m schéma */
+    .imp-bar-block{margin-bottom:20px;}
+    .imp-bar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+    .imp-bar-title{font-size:12px;font-weight:800;color:#1a2e42;}
+    .imp-bar-remain{font-size:11px;font-weight:700;padding:3px 9px;border-radius:4px;}
+    .imp-bar-remain.good{background:#e8f8e8;color:#2d7a2d;}
+    .imp-bar-remain.tight{background:#fff8e0;color:#c07800;}
+    .imp-bar-remain.zero{background:#eaf4fb;color:#2b7db8;}
+    canvas.imp-canvas{display:block;border-radius:6px;width:100%;border:1px solid #e0e8f0;}
+
+    /* liste coupes sous le schéma */
+    .cut-list{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;}
+    .cut-tag{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:800;border:1px solid;}
+
+    .imp-export-bar{display:flex;gap:8px;margin-top:4px;}
+
+    footer{text-align:center;font-size:10px;color:#b0c0d0;margin-top:20px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+    footer span{color:#2b7db8;}
+  </style>
+</head>
+<body>
+
+<div class="lv-header">
+  <img class="lv-logo" src="https://www.luxvisual.lu/images/luxvisual_logo.png" alt="LuxVisual"
+    onerror="this.style.display='none';document.getElementById('lv-fb').style.display='block'">
+  <div id="lv-fb" style="display:none;font-weight:800;font-size:22px;color:#2b7db8;">LuxVisual</div>
+  <div class="lv-app-title">Calculateur<br>Châssis Alu</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showPage('calc')">⊡ Calcul châssis</button>
+  <button class="tab" onclick="showPage('hist')">☰ Historique</button>
+  <button class="tab" onclick="showPage('imp')">✂ Imposition 3m</button>
+</div>
+
+<div class="body">
+
+  <!-- ════════════ PAGE CALCUL ════════════ -->
+  <div class="page active" id="page-calc">
+    <div class="card">
+      <div class="card-title">Dimensions de la plaque</div>
+      <div class="grid3">
+        <div class="field"><label>Largeur plaque</label><input type="number" id="pw" value="1000" min="1" step="1"><div class="unit">mm</div></div>
+        <div class="field"><label>Hauteur plaque</label><input type="number" id="ph" value="800" min="1" step="1"><div class="unit">mm</div></div>
+        <div class="field field-ex"><label>Exemplaires</label><input type="number" id="qty" value="1" min="1" step="1"><div class="unit">pcs</div></div>
+      </div>
+      <div class="field-full"><label>Référence / nom du travail (optionnel)</label><input type="text" id="job-name" placeholder="ex: Affiche Expo A1, Client Dupont…"></div>
+      <button class="btn-add" id="btn-add" onclick="addToHistory()">＋ Ajouter à l'historique</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Résultats — barres à découper</div>
+      <div class="res-grid" id="res-grid"></div>
+      <div id="formula-area"></div>
+      <div class="warn error" id="warn"></div>
+      <div id="vis-wrap">
+        <div class="vis-lbl">Aperçu du châssis</div>
+        <canvas id="vis"></canvas>
+      </div>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot blue"></div> −256 mm (panneau > 500 mm)</div>
+        <div class="leg-item"><div class="leg-dot amber"></div> −156 mm (panneau 250–500 mm)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ PAGE HISTORIQUE ════════════ -->
+  <div class="page" id="page-hist">
+    <div class="card">
+      <div class="card-title">Historique des découpes</div>
+      <div class="export-bar">
+        <button class="btn-exp btn-csv" onclick="exportCSV()">⬇ Export CSV</button>
+        <button class="btn-exp btn-grp" id="btn-grp" onclick="toggleGrouped()">⊞ Regrouper les tailles</button>
+        <button class="btn-exp btn-clear" onclick="clearHistory()">✕ Vider</button>
+      </div>
+      <div id="history-list"></div>
+      <div class="grp-panel" id="grp-panel">
+        <div class="grp-intro">Toutes les barres de même longueur regroupées — H et V confondues, exemplaires inclus.</div>
+        <div id="grp-content"></div>
+        <div style="margin-top:12px;"><button class="btn-exp btn-csv" onclick="exportGroupedCSV()">⬇ Export CSV groupé</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ PAGE IMPOSITION ════════════ -->
+  <div class="page" id="page-imp">
+
+    <div class="card">
+      <div class="card-title">Source des barres à imposer</div>
+      <div class="imp-source-tabs">
+        <button class="imp-stab active" id="stab-manual" onclick="setImpSource('manual')">✎ Saisie manuelle</button>
+        <button class="imp-stab" id="stab-hist" onclick="setImpSource('hist')">☰ Depuis l'historique</button>
+        <button class="imp-stab" id="stab-both" onclick="setImpSource('both')">⊕ Les deux</button>
+      </div>
+
+      <!-- SAISIE MANUELLE -->
+      <div id="imp-manual-section">
+        <div class="imp-bar-list" id="imp-bar-list"></div>
+        <button class="btn-add-bar" onclick="addManualBar()">＋ Ajouter une longueur</button>
+      </div>
+
+      <!-- DEPUIS HISTORIQUE -->
+      <div id="imp-hist-section" style="display:none;">
+        <div id="imp-hist-list"></div>
+        <div style="margin-top:8px;display:flex;gap:8px;">
+          <button class="btn-exp btn-csv" style="font-size:10px;padding:7px 12px;" onclick="selectAllHist(true)">Tout sélectionner</button>
+          <button class="btn-exp btn-clear" style="font-size:10px;padding:7px 12px;" onclick="selectAllHist(false)">Tout désélectionner</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Paramètres de découpe</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="field">
+          <label>Longueur barre brute</label>
+          <input type="number" id="imp-bar-len" value="3000" min="100" step="1">
+          <div class="unit">mm</div>
+        </div>
+        <div class="field">
+          <label>Épaisseur lame</label>
+          <input type="number" id="imp-kerf" value="4" min="0" step="0.5">
+          <div class="unit">mm</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-compute" id="btn-compute" onclick="computeImposition()">✂ Calculer l'imposition</button>
+
+    <div id="imp-result" style="margin-top:16px;"></div>
+
+  </div>
+
+  <footer>Outil interne <span>LuxVisual</span> — &gt;500mm: <span>−256mm</span> | 250–500mm: <span>−156mm</span> | &lt;250mm: impossible</footer>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   RÈGLES MÉTIER CHÂSSIS
+═══════════════════════════════════════════ */
+const RULES=[{min:0,max:249,offset:null},{min:250,max:500,offset:156},{min:501,max:Infinity,offset:256}];
+function getRule(d){return RULES.find(r=>d>=r.min&&d<=r.max);}
+function chassis(d){const r=getRule(d);if(!r||r.offset===null)return null;return{result:d-r.offset,offset:r.offset};}
+
+/* ═══════════════════════════════════════════
+   ÉTAT GLOBAL
+═══════════════════════════════════════════ */
+const history=JSON.parse(localStorage.getItem('lv-ch')||'[]');
+let grpOpen=false;
+let impSource='manual';
+
+/* ═══════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════ */
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const tabs={calc:0,hist:1,imp:2};
+  document.querySelectorAll('.tab')[tabs[id]].classList.add('active');
+  if(id==='hist')renderHistory();
+  if(id==='imp')renderImpHistList();
+}
+
+/* ═══════════════════════════════════════════
+   CALCUL CHÂSSIS
+═══════════════════════════════════════════ */
+function v(id){return parseFloat(document.getElementById(id).value)||0;}
+
+function calc(){
+  const pw=v('pw'),ph=v('ph'),qty=Math.max(1,v('qty'));
+  const cw=chassis(pw),ch=chassis(ph);
+  const rw=getRule(pw),rh=getRule(ph);
+  const hasErr=!cw||!ch;
+  const warnEl=document.getElementById('warn');
+  const msgs=[];
+  if(!cw)msgs.push(`Largeur ${pw} mm < 250 mm — format non géré.`);
+  if(!ch)msgs.push(`Hauteur ${ph} mm < 250 mm — format non géré.`);
+  if(msgs.length){warnEl.innerHTML='⛔ '+msgs.join('<br>⛔ ');warnEl.style.display='block';}
+  else warnEl.style.display='none';
+  document.getElementById('btn-add').disabled=hasErr;
+  if(!hasErr){
+    const isMixed=cw.offset!==ch.offset;
+    const fboxClass=isMixed?'mixed-box':cw.offset===156?'amber-box':'blue-box';
+    document.getElementById('res-grid').innerHTML=`
+      <div class="res-piece${cw.offset===156?' amber-piece':''}">
+        <div class="piece-label">Horizontal</div>
+        <div class="piece-dim">${cw.result}<span>mm</span></div>
+        <div class="piece-qty">× ${2*qty} barre${2*qty>1?'s':''}${qty>1?' ('+qty+' ex.)':''}</div>
+        <div class="piece-off ${cw.offset===156?'amber':'blue'}">− ${cw.offset} mm appliqué</div>
+      </div>
+      <div class="res-piece${ch.offset===156?' amber-piece':''}">
+        <div class="piece-label">Vertical</div>
+        <div class="piece-dim">${ch.result}<span>mm</span></div>
+        <div class="piece-qty">× ${2*qty} barre${2*qty>1?'s':''}${qty>1?' ('+qty+' ex.'):''}  </div>
+        <div class="piece-off ${ch.offset===156?'amber':'blue'}">− ${ch.offset} mm appliqué</div>
+      </div>`;
+    document.getElementById('formula-area').innerHTML=`
+      <div class="formula-box ${fboxClass}">
+        <div class="f-row"><span class="f-lbl">Horiz.</span><span class="f-val">${pw}</span><span class="f-op">−</span><span class="f-val">${cw.offset}</span><span class="f-op">=</span><span class="f-res${cw.offset===156?' amber':''}">${cw.result} mm</span><span class="f-tag ${cw.offset===156?'t156':'t256'}">${rw.offset===156?'250–500mm':'>500mm'}</span></div>
+        <div class="f-row"><span class="f-lbl">Vert.</span><span class="f-val">${ph}</span><span class="f-op">−</span><span class="f-val">${ch.offset}</span><span class="f-op">=</span><span class="f-res${ch.offset===156?' amber':''}">${ch.result} mm</span><span class="f-tag ${ch.offset===156?'t156':'t256'}">${rh.offset===156?'250–500mm':'>500mm'}</span></div>
+      </div>`;
+    document.getElementById('vis-wrap').style.display='';
+    drawFrame(cw.result,ch.result,cw.offset,ch.offset);
+  } else {
+    document.getElementById('res-grid').innerHTML='';
+    document.getElementById('formula-area').innerHTML='';
+    document.getElementById('vis-wrap').style.display='none';
+  }
+}
+
+function addToHistory(){
+  const pw=v('pw'),ph=v('ph'),qty=Math.max(1,v('qty'));
+  const cw=chassis(pw),ch=chassis(ph);
+  if(!cw||!ch)return;
+  history.unshift({id:Date.now(),date:new Date().toLocaleDateString('fr-LU'),job:document.getElementById('job-name').value.trim()||'—',pw,ph,qty,cw:cw.result,ch:ch.result,ow:cw.offset,oh:ch.offset});
+  save();
+  renderHistory();
+  if(grpOpen)renderGrouped();
+  document.getElementById('job-name').value='';
+  // Feedback visuel
+  const btn=document.getElementById('btn-add');
+  const orig=btn.textContent;
+  btn.textContent='✓ Ajouté !';
+  btn.style.background='#1d9e75';
+  setTimeout(()=>{btn.textContent=orig;btn.style.background='';},1200);
+}
+function deleteEntry(id){const i=history.findIndex(e=>e.id===id);if(i!==-1)history.splice(i,1);save();renderHistory();if(grpOpen)renderGrouped();}
+function clearHistory(){if(!history.length)return;if(confirm('Vider tout l\'historique ?')){history.length=0;save();renderHistory();if(grpOpen){grpOpen=false;updateToggle();}}}
+function save(){localStorage.setItem('lv-ch',JSON.stringify(history));}
+
+/* ═══════════════════════════════════════════
+   HISTORIQUE
+═══════════════════════════════════════════ */
+function renderHistory(){
+  const el=document.getElementById('history-list');
+  if(!history.length){el.innerHTML='<div class="history-empty">Aucune découpe enregistrée</div>';return;}
+  el.innerHTML=history.map(e=>`
+    <div class="hist-item">
+      <span class="hist-badge">${e.date}</span>
+      <div class="hist-info"><div class="hist-name">${e.job}</div><div class="hist-dims">Plaque : ${e.pw} × ${e.ph} mm</div></div>
+      <span class="hist-ex">×${e.qty||1} ex.</span>
+      <div class="hist-result">H: ${e.cw} mm<br>V: ${e.ch} mm</div>
+      <button class="hist-del" onclick="deleteEntry(${e.id})">×</button>
+    </div>`).join('');
+}
+function toggleGrouped(){if(!history.length){alert('Historique vide.');return;}grpOpen=!grpOpen;updateToggle();if(grpOpen)renderGrouped();}
+function updateToggle(){
+  const btn=document.getElementById('btn-grp'),panel=document.getElementById('grp-panel'),list=document.getElementById('history-list');
+  if(grpOpen){btn.classList.add('active');btn.textContent='✕ Fermer le regroupement';panel.classList.add('open');list.style.display='none';}
+  else{btn.classList.remove('active');btn.textContent='⊞ Regrouper les tailles';panel.classList.remove('open');list.style.display='';}
+}
+function getGroups(){
+  const g={};
+  history.forEach(e=>{
+    const qty=e.qty||1;
+    [{dim:e.cw,type:'H'},{dim:e.ch,type:'V'}].forEach(({dim,type})=>{
+      if(!g[dim])g[dim]={dim,total:0,rows:[]};
+      g[dim].total+=2*qty;
+      g[dim].rows.push({date:e.date,job:e.job,bars:2*qty,type});
+    });
+  });
+  return Object.values(g).sort((a,b)=>b.dim-a.dim);
+}
+function renderGrouped(){
+  document.getElementById('grp-content').innerHTML=getGroups().map(g=>`
+    <div class="grp-block">
+      <div class="grp-head"><span class="grp-head-label">Barres de ${g.dim} mm</span><span class="grp-head-total">${g.total} barres au total</span></div>
+      <div class="grp-rows">
+        <div class="grp-row-h"><span>Date</span><span>Référence</span><span style="text-align:right">Qté</span></div>
+        ${g.rows.map(r=>`<div class="grp-row"><span class="grp-date">${r.date}</span><span class="grp-ref">${r.job} <span style="color:#9ab5cc;font-size:10px">(${r.type})</span></span><span class="grp-bars">${r.bars} barres</span></div>`).join('')}
+      </div>
+      <div class="grp-foot"><span class="grp-foot-lbl">Total à découper</span><span class="grp-foot-val">${g.total} × ${g.dim} mm</span></div>
+    </div>`).join('');
+}
+function exportCSV(){
+  if(!history.length){alert('Historique vide.');return;}
+  dlCSV([['Date','Référence','Exemplaires','Largeur plaque (mm)','Hauteur plaque (mm)','Déduction H (mm)','Déduction V (mm)','Horizontal châssis (mm)','Vertical châssis (mm)','Nb barres H','Nb barres V'],
+    ...history.map(e=>[e.date,e.job,e.qty||1,e.pw,e.ph,e.ow||256,e.oh||256,e.cw,e.ch,2*(e.qty||1),2*(e.qty||1)])],`luxvisual-chassis-${today()}.csv`);
+}
+function exportGroupedCSV(){
+  dlCSV([['Longueur barre (mm)','Total barres','Détail'],
+    ...getGroups().map(g=>[g.dim,g.total,g.rows.map(r=>`${r.job} (${r.type}) ×${r.bars}`).join(' | ')])],`luxvisual-groupe-${today()}.csv`);
+}
+
+/* ═══════════════════════════════════════════
+   IMPOSITION 3m
+═══════════════════════════════════════════ */
+let manualBars=[];
+
+function setImpSource(src){
+  impSource=src;
+  ['manual','hist','both'].forEach(s=>{
+    document.getElementById('stab-'+s).classList.toggle('active',s===src);
+  });
+  document.getElementById('imp-manual-section').style.display=(src==='manual'||src==='both')?'':'none';
+  document.getElementById('imp-hist-section').style.display=(src==='hist'||src==='both')?'':'none';
+}
+
+function addManualBar(){
+  const id=Date.now();
+  manualBars.push({id,dim:500,qty:1});
+  renderManualBars();
+}
+
+function renderManualBars(){
+  const el=document.getElementById('imp-bar-list');
+  if(!manualBars.length){el.innerHTML='<div style="font-size:11px;color:#b0c0d0;font-weight:700;text-align:center;padding:10px 0;">Aucune barre — cliquez + pour en ajouter</div>';return;}
+  el.innerHTML=manualBars.map(b=>`
+    <div class="imp-bar-row" id="mbr-${b.id}">
+      <input type="number" value="${b.dim}" min="1" step="1" onchange="updateManualBar(${b.id},'dim',this.value)">
+      <span class="imp-bar-unit">mm</span>
+      <span style="font-size:11px;color:#7a9bb5;font-weight:700;">×</span>
+      <input class="imp-bar-qty" type="number" value="${b.qty}" min="1" step="1" onchange="updateManualBar(${b.id},'qty',this.value)">
+      <span class="imp-bar-lbl">pcs</span>
+      <button class="imp-bar-del" onclick="removeManualBar(${b.id})">×</button>
+    </div>`).join('');
+}
+
+function updateManualBar(id,field,val){
+  const b=manualBars.find(b=>b.id===id);
+  if(b)b[field]=field==='dim'?(parseFloat(val)||0):(parseInt(val)||1);
+}
+
+function removeManualBar(id){
+  manualBars=manualBars.filter(b=>b.id!==id);
+  renderManualBars();
+}
+
+function renderImpHistList(){
+  const el=document.getElementById('imp-hist-list');
+  if(!history.length){el.innerHTML='<div class="history-empty">Historique vide</div>';return;}
+  el.innerHTML=history.map(e=>`
+    <div class="imp-hist-item">
+      <input type="checkbox" id="ichk-${e.id}" checked>
+      <div class="imp-hist-info">
+        <div class="imp-hist-name">${e.job}</div>
+        <div class="imp-hist-sub">${e.date} · Plaque ${e.pw}×${e.ph} mm · ×${e.qty||1} ex.</div>
+      </div>
+      <div class="imp-hist-dims">H: ${e.cw} mm &nbsp; V: ${e.ch} mm</div>
+    </div>`).join('');
+}
+
+function selectAllHist(val){
+  history.forEach(e=>{
+    const cb=document.getElementById('ichk-'+e.id);
+    if(cb)cb.checked=val;
+  });
+}
+
+/* ── Algorithme d'imposition (First Fit Decreasing) ── */
+function computeImposition(){
+  const barLen=parseFloat(document.getElementById('imp-bar-len').value)||3000;
+  const kerf=parseFloat(document.getElementById('imp-kerf').value)||4;
+
+  // Collecter toutes les barres à couper
+  let cuts=[];
+
+  if(impSource==='manual'||impSource==='both'){
+    manualBars.forEach(b=>{
+      if(b.dim>0 && b.dim<=barLen){
+        for(let i=0;i<b.qty;i++) cuts.push({dim:b.dim,label:'Manuel',color:'#2b7db8'});
+      }
+    });
+  }
+  if(impSource==='hist'||impSource==='both'){
+    history.forEach(e=>{
+      const cb=document.getElementById('ichk-'+e.id);
+      if(!cb||!cb.checked)return;
+      const qty=e.qty||1;
+      const label=e.job==='—'?`${e.pw}×${e.ph}mm`:e.job;
+      for(let i=0;i<2*qty;i++) cuts.push({dim:e.cw,label,color:'#2b7db8',orient:'H'});
+      for(let i=0;i<2*qty;i++) cuts.push({dim:e.ch,label,color:'#5a9e3c',orient:'V'});
+    });
+  }
+
+  if(!cuts.length){alert('Aucune barre à imposer.');return;}
+
+  // Trier par taille décroissante
+  cuts.sort((a,b)=>b.dim-a.dim);
+
+  // Vérifier si une barre dépasse la longueur brute
+  const oversize=cuts.filter(c=>c.dim>barLen);
+  if(oversize.length){
+    alert(`⛔ ${oversize.length} barre(s) dépassent ${barLen} mm et ne peuvent pas être découpées dans cette longueur brute.`);
+    return;
+  }
+
+  // First Fit Decreasing sur barres de 3m
+  const bars=[];// chaque bar = {remaining, cuts:[]}
+  cuts.forEach(cut=>{
+    // Trouver une barre où ça rentre (avec kerf)
+    const needed=cut.dim+(bars.length>0?kerf:0);// pas de kerf si première coupe
+    let placed=false;
+    for(let b of bars){
+      const spaceNeeded=cut.dim+kerf;// toujours un trait de scie
+      if(b.remaining>=spaceNeeded){
+        b.remaining-=spaceNeeded;
+        b.cuts.push(cut);
+        placed=true;
+        break;
+      }
+    }
+    if(!placed){
+      // Nouvelle barre de 3m
+      const newBar={remaining:barLen-cut.dim,cuts:[cut]};
+      bars.push(newBar);
+    }
+  });
+
+  renderImposition(bars,barLen,kerf);
+}
+
+/* Palette de couleurs pour les segments */
+const PALETTE=[
+  '#378ADD','#1D9E75','#BA7517','#D85A30','#7F77DD',
+  '#D4537E','#639922','#E24B4A','#5DCAA5','#EF9F27'
+];
+
+function renderImposition(bars,barLen,kerf){
+  const totalBars=bars.length;
+  const totalCuts=bars.reduce((s,b)=>s+b.cuts.length,0);
+  const totalWaste=bars.reduce((s,b)=>s+b.remaining,0);
+  const efficiency=Math.round((1-totalWaste/(totalBars*barLen))*100);
+
+  // Construire un index de couleur par dimension
+  const dimColors={};
+  let ci=0;
+  bars.forEach(b=>b.cuts.forEach(c=>{
+    if(dimColors[c.dim]===undefined) dimColors[c.dim]=PALETTE[ci++%PALETTE.length];
+  }));
+
+  let html=`
+    <div class="card">
+      <div class="card-title">Résultat de l'imposition</div>
+      <div class="imp-stats">
+        <div class="imp-stat"><div class="imp-stat-val">${totalBars}</div><div class="imp-stat-lbl">Barres de ${barLen/1000}m</div></div>
+        <div class="imp-stat"><div class="imp-stat-val">${totalCuts}</div><div class="imp-stat-lbl">Coupes au total</div></div>
+        <div class="imp-stat"><div class="imp-stat-val">${efficiency}%</div><div class="imp-stat-lbl">Rendement matière</div></div>
+      </div>`;
+
+  bars.forEach((b,bi)=>{
+    const wasteClass=b.remaining===0?'zero':b.remaining<100?'tight':'good';
+    html+=`
+      <div class="imp-bar-block">
+        <div class="imp-bar-header">
+          <span class="imp-bar-title">Barre ${bi+1} / ${totalBars} &nbsp;<span style="color:#9ab5cc;font-weight:600;font-size:11px">(${barLen} mm)</span></span>
+          <span class="imp-bar-remain ${wasteClass}">Chute : ${b.remaining} mm</span>
+        </div>
+        <canvas class="imp-canvas" id="imp-cv-${bi}" height="54"></canvas>
+        <div class="cut-list" id="imp-cuts-${bi}"></div>
+      </div>`;
+  });
+
+  html+=`
+      <div class="imp-export-bar">
+        <button class="btn-exp btn-csv" onclick="exportImpositionCSV()">⬇ Export CSV imposition</button>
+      </div>
+    </div>`;
+
+  const el=document.getElementById('imp-result');
+  el.innerHTML=html;
+
+  // Stocker pour l'export
+  window._lastImpBars=bars;
+  window._lastImpBarLen=barLen;
+  window._lastImpKerf=kerf;
+  window._lastDimColors=dimColors;
+
+  // Dessiner les canvas
+  bars.forEach((b,bi)=>{
+    drawImpCanvas(bi,b,barLen,kerf,dimColors);
+    renderCutList(bi,b,dimColors);
+  });
+}
+
+function drawImpCanvas(bi,bar,barLen,kerf,dimColors){
+  const canvas=document.getElementById('imp-cv-'+bi);
+  if(!canvas)return;
+  const W=canvas.parentElement.clientWidth||560;
+  canvas.width=W;
+  canvas.height=54;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,54);
+
+  const scale=(W-2)/barLen;
+  const y=10,h=34,rx=3;
+
+  // Fond barre brute
+  ctx.fillStyle='#e8edf3';
+  roundRect(ctx,1,y,W-2,h,rx);
+  ctx.fill();
+
+  let x=1;
+  bar.cuts.forEach((cut,ci)=>{
+    const cw=cut.dim*scale;
+    const col=dimColors[cut.dim];
+    // segment coloré
+    ctx.fillStyle=col;
+    if(ci===0) roundRectLeft(ctx,x,y,cw,h,rx);
+    else ctx.fillRect(x,y,cw,h);
+    ctx.fill();
+
+    // label
+    ctx.fillStyle='rgba(255,255,255,0.92)';
+    ctx.font='bold 10px "Nunito Sans",sans-serif';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    const label=`${cut.dim}`;
+    const tw=ctx.measureText(label).width;
+    if(cw>tw+8) ctx.fillText(label,x+cw/2,y+h/2);
+
+    x+=cw;
+
+    // trait de scie (sauf après le dernier)
+    if(ci<bar.cuts.length-1){
+      const kw=kerf*scale;
+      ctx.fillStyle='#1a2e42';
+      ctx.fillRect(x,y,Math.max(kw,1.5),h);
+      x+=Math.max(kw,1.5);
+    }
+  });
+
+  // chute
+  const chute=bar.remaining*scale;
+  if(chute>1){
+    ctx.fillStyle='#f0f4f8';
+    const rx2=3;
+    roundRectRight(ctx,x,y,W-1-x,h,rx2);
+    ctx.fill();
+    ctx.strokeStyle='#c0ccd8';
+    ctx.lineWidth=1;
+    ctx.setLineDash([3,3]);
+    roundRectRight(ctx,x,y,W-1-x,h,rx2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    if(W-1-x>30){
+      ctx.fillStyle='#9ab5cc';
+      ctx.font='bold 9px "Nunito Sans",sans-serif';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillText(`${bar.remaining}mm`,x+(W-1-x)/2,y+h/2);
+    }
+  }
+
+  // Axe en dessous
+  ctx.strokeStyle='#c0ccd8';
+  ctx.lineWidth=0.5;
+  ctx.beginPath();ctx.moveTo(1,y+h+2);ctx.lineTo(W-1,y+h+2);ctx.stroke();
+  ctx.fillStyle='#9ab5cc';
+  ctx.font='bold 9px "Nunito Sans",sans-serif';
+  ctx.textAlign='left'; ctx.textBaseline='top';
+  ctx.fillText('0',1,y+h+4);
+  ctx.textAlign='right';
+  ctx.fillText(`${barLen} mm`,W-1,y+h+4);
+}
+
+function renderCutList(bi,bar,dimColors){
+  const el=document.getElementById('imp-cuts-'+bi);
+  if(!el)return;
+  // Compter par dim
+  const counts={};
+  bar.cuts.forEach(c=>{counts[c.dim]=(counts[c.dim]||0)+1;});
+  el.innerHTML=Object.entries(counts).sort((a,b)=>b[0]-a[0]).map(([dim,qty])=>{
+    const col=dimColors[dim];
+    const light=col+'22';
+    return `<span class="cut-tag" style="background:${light};border-color:${col};color:${col};">${dim} mm <span style="opacity:.7">×${qty}</span></span>`;
+  }).join('');
+}
+
+function exportImpositionCSV(){
+  const bars=window._lastImpBars;
+  const barLen=window._lastImpBarLen;
+  const kerf=window._lastImpKerf;
+  if(!bars)return;
+  const rows=[['Barre N°','Longueur brute (mm)','Coupe N°','Longueur coupe (mm)','Étiquette','Chute barre (mm)']];
+  bars.forEach((b,bi)=>{
+    b.cuts.forEach((c,ci)=>{
+      rows.push([bi+1,barLen,ci+1,c.dim,c.label||'',ci===b.cuts.length-1?b.remaining:'']);
+    });
+  });
+  dlCSV(rows,`luxvisual-imposition-${today()}.csv`);
+}
+
+/* Helpers canvas */
+function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}
+function roundRectLeft(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w,y);ctx.lineTo(x+w,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}
+function roundRectRight(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x,y+h);ctx.closePath();}
+
+/* ═══════════════════════════════════════════
+   CANVAS CHÂSSIS
+═══════════════════════════════════════════ */
+function drawFrame(fw,fh,offW,offH){
+  const c=document.getElementById('vis');
+  if(!c||fw<=0||fh<=0){if(c){c.width=0;c.height=0;}return;}
+  const mW=Math.min((c.parentElement?.clientWidth||520)-4,520);
+  const s=Math.min(mW/fw,160/fh,1),pad=34;
+  c.width=Math.round(fw*s+pad*2);c.height=Math.round(fh*s+pad*2);
+  const ctx=c.getContext('2d'),ox=pad,oy=pad,ow=fw*s,oh=fh*s,bw=Math.max(8,Math.min(22,ow*0.06));
+  ctx.clearRect(0,0,c.width,c.height);
+  ctx.fillStyle='#f0f4f8';ctx.fillRect(ox,oy,ow,oh);
+  const cH=offW===156?'#f5c84a':'#cdd5e0',sH=offW===156?'#c8a020':'#9aabb8';
+  const cV=offH===156?'#f5c84a':'#cdd5e0',sV=offH===156?'#c8a020':'#9aabb8';
+  const bar=(x,y,w,h,f,s)=>{ctx.fillStyle=f;ctx.fillRect(x,y,w,h);ctx.strokeStyle=s;ctx.lineWidth=.5;ctx.strokeRect(x+.25,y+.25,w-.5,h-.5);};
+  bar(ox,oy,ow,bw,cH,sH);bar(ox,oy+oh-bw,ow,bw,cH,sH);
+  bar(ox,oy+bw,bw,oh-bw*2,cV,sV);bar(ox+ow-bw,oy+bw,bw,oh-bw*2,cV,sV);
+  ctx.fillStyle='#e2eaf2';ctx.fillRect(ox+bw,oy+bw,ow-bw*2,oh-bw*2);
+  [[ox,oy],[ox+ow-3,oy],[ox,oy+oh-3],[ox+ow-3,oy+oh-3]].forEach(([x,y])=>{ctx.fillStyle='#2b7db8';ctx.fillRect(x,y,3,3);});
+  const ay=oy+oh+18,axC=offW===156?'#c07800':'#2b7db8';
+  ctx.strokeStyle=axC;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(ox,ay);ctx.lineTo(ox+ow,ay);ctx.stroke();
+  [[ox,1],[ox+ow,-1]].forEach(([x,d])=>{ctx.beginPath();ctx.moveTo(x,ay);ctx.lineTo(x+d*5,ay-3);ctx.lineTo(x+d*5,ay+3);ctx.closePath();ctx.fillStyle=axC;ctx.fill();});
+  ctx.fillStyle='#1a2e42';ctx.font='bold 10px "Nunito Sans",sans-serif';ctx.textAlign='center';ctx.fillText(fw+' mm',ox+ow/2,ay+13);
+  const ax=ox+ow+18,ayC=offH===156?'#c07800':'#555';
+  ctx.strokeStyle=ayC;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(ax,oy);ctx.lineTo(ax,oy+oh);ctx.stroke();
+  [[oy,1],[oy+oh,-1]].forEach(([y,d])=>{ctx.beginPath();ctx.moveTo(ax,y);ctx.lineTo(ax-3,y+d*5);ctx.lineTo(ax+3,y+d*5);ctx.closePath();ctx.fillStyle=ayC;ctx.fill();});
+  ctx.save();ctx.translate(ax+14,oy+oh/2);ctx.rotate(Math.PI/2);ctx.fillStyle='#1a2e42';ctx.font='bold 10px "Nunito Sans",sans-serif';ctx.textAlign='center';ctx.fillText(fh+' mm',0,0);ctx.restore();
+}
+
+/* ═══════════════════════════════════════════
+   UTILITAIRES
+═══════════════════════════════════════════ */
+function dlCSV(rows,fn){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n')],{type:'text/csv;charset=utf-8;'}));
+  a.download=fn;a.click();
+}
+function today(){return new Date().toISOString().slice(0,10);}
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+['pw','ph','qty'].forEach(id=>document.getElementById(id).addEventListener('input',calc));
+addManualBar();// une ligne vide par défaut
+calc();
+</script>
+</body>
+</html>
